@@ -1,77 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Twitter Sentiment Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            padding: 2rem;
-            background-color: #f8f9fa;
-        }
-        .sentiment-positive {
-            color: #28a745;
-        }
-        .sentiment-negative {
-            color: #dc3545;
-        }
-        .sentiment-neutral {
-            color: #ffc107;
-        }
-    </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="text-center mb-4">📊 Twitter Sentiment Tracker</h1>
+    <h1>Twitter Sentiment Tracker</h1>
 
-    <form method="POST" class="row g-3 justify-content-center mb-4">
-        <div class="col-md-4">
-            <input type="text" name="keyword" class="form-control" placeholder="Enter keyword" required>
-        </div>
-        <div class="col-md-auto">
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="mode" value="live" {% if mode == 'live' %}checked{% endif %}>
-                <label class="form-check-label">Live</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="mode" value="offline" {% if mode == 'offline' %}checked{% endif %}>
-                <label class="form-check-label">Offline</label>
-            </div>
-        </div>
-        <div class="col-md-auto">
-            <button type="submit" class="btn btn-primary">Analyze</button>
-        </div>
+    <!-- 🔍 Analyze tweets from CSV -->
+    <form method="POST">
+        <input type="text" name="keyword" placeholder="Enter keyword for tweets" required>
+        <input type="submit" value="Analyze Tweets">
     </form>
 
     {% if keyword %}
-        <h4 class="text-center mb-4">Results for: <em>{{ keyword }}</em> ({{ mode|capitalize }} mode)</h4>
-
+        <h2>Results for: <em>{{ keyword }}</em></h2>
+        
         {% if sentiments %}
-            <div class="row justify-content-center mb-5">
-                <div class="col-md-6">
-                    <canvas id="sentimentChart"></canvas>
-                </div>
-            </div>
-
-            <ul class="list-group">
-                {% for tweet, sentiment in sentiments %}
-                    <li class="list-group-item">
-                        <strong class="
-                            {% if sentiment == 'Positive' %}sentiment-positive
-                            {% elif sentiment == 'Negative' %}sentiment-negative
-                            {% else %}sentiment-neutral{% endif %}
-                        ">{{ sentiment }}</strong>: {{ tweet }}
-                    </li>
-                {% endfor %}
-            </ul>
-
+            <canvas id="sentimentChart" width="300" height="300"></canvas>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script>
                 const data = {
                     labels: ['Positive', 'Negative', 'Neutral'],
                     datasets: [{
                         data: [{{ counts['Positive'] }}, {{ counts['Negative'] }}, {{ counts['Neutral'] }}],
-                        backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+                        backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
                     }]
                 };
 
@@ -85,10 +37,30 @@
                     config
                 );
             </script>
+
+            <ul>
+                {% for tweet, sentiment in sentiments %}
+                    <li><strong>{{ sentiment }}</strong>: {{ tweet }}</li>
+                {% endfor %}
+            </ul>
         {% else %}
-            <p class="text-center text-danger">No tweets found or quota limit reached.</p>
+            <p>No tweets found for "{{ keyword }}".</p>
         {% endif %}
     {% endif %}
-</div>
+
+    <hr>
+
+    <!-- ✍️ New section: Predict sentiment from sentence -->
+    <h2>Predict Sentiment of Your Own Sentence</h2>
+    <form method="POST">
+        <input type="text" name="sentence" placeholder="Type a sentence..." required>
+        <input type="submit" value="Check Sentiment">
+    </form>
+
+    {% if user_sentence %}
+        <h3>Sentiment of "<em>{{ user_sentence }}</em>": 
+            <span style="color:blue">{{ user_sentiment }}</span>
+        </h3>
+    {% endif %}
 </body>
 </html>

@@ -11,22 +11,32 @@ def home():
     keyword = ""
     sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
 
-    if request.method == 'POST':
-        keyword = request.form['keyword']
-        # ✅ FIX: Pass keyword to the function
-        tweets = get_offline_tweets(keyword)
-        sentiments = [(tweet, analyze_sentiment(tweet)) for tweet in tweets]
+    # ✍️ For direct sentence prediction
+    user_sentence = ""
+    user_sentiment = ""
 
-        # Count sentiment types
-        for _, sentiment in sentiments:
-            if sentiment in sentiment_counts:
-                sentiment_counts[sentiment] += 1
+    if request.method == 'POST':
+        # Get keyword from tweet search form
+        keyword = request.form.get('keyword', "")
+        if keyword:
+            tweets = get_offline_tweets(keyword)
+            sentiments = [(tweet, analyze_sentiment(tweet)) for tweet in tweets]
+            for _, sentiment in sentiments:
+                if sentiment in sentiment_counts:
+                    sentiment_counts[sentiment] += 1
+
+        # Get custom sentence from user
+        user_sentence = request.form.get('sentence', "")
+        if user_sentence:
+            user_sentiment = analyze_sentiment(user_sentence)
 
     return render_template(
         'index.html',
         sentiments=sentiments,
         keyword=keyword,
-        counts=sentiment_counts
+        counts=sentiment_counts,
+        user_sentence=user_sentence,
+        user_sentiment=user_sentiment
     )
 
 if __name__ == '__main__':
