@@ -3,56 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <title>Sentiment Tracker</title>
+
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
+    /* Gradient Background */
     body {
-      background: linear-gradient(to right, #f9f9f9, #e6f0ff);
+      background: linear-gradient(to bottom right, #5A827E, #84AE92, #B9D4AA, #FAFFCA);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
       font-family: 'Segoe UI', sans-serif;
+      color: #222; /* Dark font */
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
     .fade-in {
-      animation: fadeIn 1.2s ease-in-out;
+      animation: fadeIn 1s ease-in-out;
     }
 
     @keyframes fadeIn {
-      0% { opacity: 0; transform: translateY(20px); }
-      100% { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .card {
-      transition: transform 0.3s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      border: none;
     }
 
     .card:hover {
       transform: scale(1.01);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
 
-    canvas {
-      max-width: 250px;
-      margin: auto;
-      display: block;
+    .form-control, .btn {
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-control:focus {
+      border-color: #5A827E;
+      box-shadow: 0 0 0 0.2rem rgba(90,130,126,0.25);
+    }
+
+    .btn:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-1px);
     }
 
     .chart-container {
-      display: flex;
-      justify-content: center;
+      text-align: center;
       margin-top: 20px;
+    }
+
+    .chart-container canvas {
+      width: 20vw !important;
+      height: auto !important;
     }
 
     .badge {
       font-size: 0.9rem;
     }
+
+    .list-group-item {
+      background-color: rgba(255, 255, 255, 0.8);
+    }
   </style>
 </head>
-<body class="bg-light fade-in">
+
+<body class="fade-in">
 
 <div class="container py-5">
-  <h1 class="text-center mb-5 text-primary fw-bold">📊 Sentiment Tracker</h1>
+  <h1 class="text-center mb-5 text-dark fw-bold">📊 Sentiment Tracker</h1>
 
-  <!-- Tweet Analysis -->
-  <div class="card shadow mb-5">
+  <!-- Tweet Analysis Section -->
+  <div class="card shadow mb-5 bg-white bg-opacity-75">
     <div class="card-body">
       <h4 class="card-title">Analyze Tweets from Keyword</h4>
       <form method="POST" class="row g-3 mt-2">
@@ -66,30 +99,54 @@
 
       {% if keyword %}
         <div class="mt-4">
-          <h6>Results for: <em class="text-secondary">{{ keyword }}</em></h6>
+          <h6>Results for: <em class="text-dark">{{ keyword }}</em></h6>
 
           {% if sentiments %}
+            <!-- Doughnut Chart -->
             <div class="chart-container">
-              <canvas id="sentimentChart" width="250" height="250"></canvas>
+              <canvas id="sentimentChart"></canvas>
             </div>
+
             <script>
               const data = {
                 labels: ['Positive', 'Negative', 'Neutral'],
                 datasets: [{
                   data: [{{ counts['Positive'] }}, {{ counts['Negative'] }}, {{ counts['Neutral'] }}],
                   backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                  hoverOffset: 20,
+                  borderWidth: 1,
+                  borderColor: '#ffffff'
                 }]
               };
-              const config = { type: 'pie', data: data };
+
+              const config = {
+                type: 'doughnut',
+                data: data,
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  animation: {
+                    animateScale: true,
+                    animateRotate: true
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'bottom'
+                    }
+                  }
+                }
+              };
+
               new Chart(document.getElementById('sentimentChart'), config);
             </script>
 
+            <!-- Tweet Results -->
             <ul class="list-group mt-4">
               {% for tweet, sentiment in sentiments %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  {{ tweet }}
-                  <span class="badge bg-info text-dark">{{ sentiment }}</span>
-                </li>
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ tweet }}
+                <span class="badge bg-info text-dark">{{ sentiment }}</span>
+              </li>
               {% endfor %}
             </ul>
           {% else %}
@@ -100,8 +157,8 @@
     </div>
   </div>
 
-  <!-- Custom Sentence Prediction -->
-  <div class="card shadow fade-in">
+  <!-- Sentence Sentiment Prediction -->
+  <div class="card shadow bg-white bg-opacity-75">
     <div class="card-body">
       <h4 class="card-title">🎯 Predict Sentiment of Your Sentence</h4>
       <form method="POST" class="row g-3 mt-2">
@@ -114,10 +171,10 @@
       </form>
 
       {% if user_sentence %}
-        <div class="mt-4 alert alert-info shadow-sm">
-          Sentiment of "<strong>{{ user_sentence }}</strong>": 
-          <span class="fw-bold text-primary">{{ user_sentiment }}</span>
-        </div>
+      <div class="mt-4 alert alert-info shadow-sm">
+        Sentiment of "<strong>{{ user_sentence }}</strong>":
+        <span class="fw-bold text-primary">{{ user_sentiment }}</span>
+      </div>
       {% endif %}
     </div>
   </div>
