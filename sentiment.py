@@ -1,19 +1,17 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-# Create analyzer object
 analyzer = SentimentIntensityAnalyzer()
 
-# Function to analyze sentiment
 def analyze_sentiment(text):
-    score = analyzer.polarity_scores(text)
-
-    if score['compound'] >= 0.05:
-        return "Positive"
-    elif score['compound'] <= -0.05:
-        return "Negative"
+    scores = analyzer.polarity_scores(text)
+    compound = scores['compound']
+    
+    if compound >= 0.05:
+        label = "Positive"
+    elif compound <= -0.05:
+        label = "Negative"
     else:
-        return "Neutral"
-# if __name__ == "__main__":
-#     example = "I love this phone, it's amazing!"
-#     result = analyze_sentiment(example)
-#     print(f"Sentiment: {result}")
+        label = "Neutral"
+
+    confidence = round(abs(compound), 2)
+    return label, confidence

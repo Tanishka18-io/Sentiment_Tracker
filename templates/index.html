@@ -9,13 +9,12 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-    /* Gradient Background */
     body {
       background: linear-gradient(to bottom right, #5A827E, #84AE92, #B9D4AA, #FAFFCA);
       background-size: 400% 400%;
       animation: gradientMove 15s ease infinite;
       font-family: 'Segoe UI', sans-serif;
-      color: #222; /* Dark font */
+      color: #222;
     }
 
     @keyframes gradientMove {
@@ -24,29 +23,25 @@
       100% { background-position: 0% 50%; }
     }
 
-    .fade-in {
-      animation: fadeIn 1s ease-in-out;
+    .hero {
+      text-align: center;
+      padding: 60px 20px;
+      color: #fff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+      backdrop-filter: blur(5px);
+      transition: 0.3s ease;
     }
 
-    .card {
-      transition: all 0.3s ease;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-      border: none;
-    }
-
-    .card:hover {
-      transform: scale(1.01);
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .form-control, .btn {
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .glass-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.2);
     }
 
     .form-control:focus {
@@ -54,131 +49,135 @@
       box-shadow: 0 0 0 0.2rem rgba(90,130,126,0.25);
     }
 
-    .btn:hover {
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      transform: translateY(-1px);
+    .btn-primary {
+      background-color: #5A827E;
+      border-color: #5A827E;
     }
 
-    .chart-container {
-      text-align: center;
-      margin-top: 20px;
+    .btn-primary:hover {
+      background-color: #476e6a;
+      border-color: #476e6a;
     }
 
     .chart-container canvas {
-      width: 20vw !important;
-      height: auto !important;
+      width: 100% !important;
+      max-width: 250px;
+      margin: auto;
     }
 
-    .badge {
-      font-size: 0.9rem;
+    .tweet-list {
+      max-height: 300px;
+      overflow-y: auto;
+      background: rgba(255,255,255,0.6);
+      padding: 10px;
+      border-radius: 8px;
     }
 
-    .list-group-item {
-      background-color: rgba(255, 255, 255, 0.8);
+    .tweet-item {
+      border-bottom: 1px solid #ccc;
+      padding: 5px 0;
+    }
+
+    .tweet-item:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
 
-<body class="fade-in">
+<body>
 
-<div class="container py-5">
-  <h1 class="text-center mb-5 text-dark fw-bold">📊 Sentiment Tracker</h1>
+  <!-- Hero Header -->
+  <section class="hero">
+    <h1 class="display-5 fw-bold">💬 AI Sentiment Tracker</h1>
+    <p class="lead">Analyze tweets or your own sentences for sentiment — lightning fast ⚡</p>
+  </section>
 
-  <!-- Tweet Analysis Section -->
-  <div class="card shadow mb-5 bg-white bg-opacity-75">
-    <div class="card-body">
-      <h4 class="card-title">Analyze Tweets from Keyword</h4>
-      <form method="POST" class="row g-3 mt-2">
-        <div class="col-md-10">
-          <input type="text" class="form-control" name="keyword" placeholder="Enter keyword for tweets" required>
-        </div>
-        <div class="col-md-2 d-grid">
-          <button type="submit" class="btn btn-primary">Analyze Tweets</button>
-        </div>
-      </form>
+  <!-- Main Container -->
+  <div class="container my-5">
+    <div class="row g-4">
 
-      {% if keyword %}
-        <div class="mt-4">
-          <h6>Results for: <em class="text-dark">{{ keyword }}</em></h6>
+      <!-- Column 1: Sentence Input -->
+      <div class="col-md-6">
+        <div class="glass-card">
+          <h4>🎯 Sentence Sentiment</h4>
+          <form method="POST" class="mb-3">
+            <input type="text" name="sentence" class="form-control mb-3" placeholder="Type your sentence here..." required>
+            <button type="submit" class="btn btn-primary w-100">Predict Sentiment</button>
+          </form>
 
-          {% if sentiments %}
-            <!-- Doughnut Chart -->
-            <div class="chart-container">
-              <canvas id="sentimentChart"></canvas>
+          {% if user_sentence %}
+            <div class="alert alert-info">
+              Sentiment of "<strong>{{ user_sentence }}</strong>" is:
+              <span class="fw-bold text-primary">{{ user_sentiment }}</span>
             </div>
-
-            <script>
-              const data = {
-                labels: ['Positive', 'Negative', 'Neutral'],
-                datasets: [{
-                  data: [{{ counts['Positive'] }}, {{ counts['Negative'] }}, {{ counts['Neutral'] }}],
-                  backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
-                  hoverOffset: 20,
-                  borderWidth: 1,
-                  borderColor: '#ffffff'
-                }]
-              };
-
-              const config = {
-                type: 'doughnut',
-                data: data,
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: true,
-                  animation: {
-                    animateScale: true,
-                    animateRotate: true
-                  },
-                  plugins: {
-                    legend: {
-                      position: 'bottom'
-                    }
-                  }
-                }
-              };
-
-              new Chart(document.getElementById('sentimentChart'), config);
-            </script>
-
-            <!-- Tweet Results -->
-            <ul class="list-group mt-4">
-              {% for tweet, sentiment in sentiments %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ tweet }}
-                <span class="badge bg-info text-dark">{{ sentiment }}</span>
-              </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-muted mt-3">No tweets found for this keyword.</p>
           {% endif %}
         </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- Sentence Sentiment Prediction -->
-  <div class="card shadow bg-white bg-opacity-75">
-    <div class="card-body">
-      <h4 class="card-title">🎯 Predict Sentiment of Your Sentence</h4>
-      <form method="POST" class="row g-3 mt-2">
-        <div class="col-md-10">
-          <input type="text" class="form-control" name="sentence" placeholder="Type your sentence here..." required>
-        </div>
-        <div class="col-md-2 d-grid">
-          <button type="submit" class="btn btn-success">Check Sentiment</button>
-        </div>
-      </form>
-
-      {% if user_sentence %}
-      <div class="mt-4 alert alert-info shadow-sm">
-        Sentiment of "<strong>{{ user_sentence }}</strong>":
-        <span class="fw-bold text-primary">{{ user_sentiment }}</span>
       </div>
-      {% endif %}
+
+      <!-- Column 2: Keyword Tweets + Chart -->
+      <div class="col-md-6">
+        <div class="glass-card">
+          <h4>📌 Analyze using keywords</h4>
+          <form method="POST" class="mb-3">
+            <input type="text" name="keyword" class="form-control mb-3" placeholder="Enter keyword for tweets..." required>
+            <button type="submit" class="btn btn-primary w-100">Analyze</button>
+          </form>
+
+          {% if keyword %}
+            <p><strong>Results for:</strong> <em>{{ keyword }}</em></p>
+
+            {% if sentiments %}
+              <div class="text-center">
+                <canvas id="sentimentChart"></canvas>
+              </div>
+
+              <script>
+                const data = {
+                  labels: ['Positive', 'Negative', 'Neutral'],
+                  datasets: [{
+                    data: [{{ counts['Positive'] }}, {{ counts['Negative'] }}, {{ counts['Neutral'] }}],
+                    backgroundColor: ['#4CAF50', '#F44336', '#FFC107'],
+                    hoverOffset: 20,
+                    borderWidth: 1,
+                    borderColor: '#fff'
+                  }]
+                };
+
+                const config = {
+                  type: 'doughnut',
+                  data: data,
+                  options: {
+                    responsive: true,
+                    animation: {
+                      animateScale: true,
+                      animateRotate: true
+                    },
+                    plugins: {
+                      legend: {
+                        position: 'bottom'
+                      }
+                    }
+                  }
+                };
+
+                new Chart(document.getElementById('sentimentChart'), config);
+              </script>
+
+              <div class="tweet-list mt-3">
+                {% for tweet, sentiment in sentiments %}
+                  <div class="tweet-item">
+                    <strong>{{ sentiment }}</strong>: {{ tweet }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-muted">No tweets found or quota limit reached.</p>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
 </body>
 </html>
